@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: academicsync-postgres
+    environment:
+      POSTGRES_DB: academicsync
+      POSTGRES_USER: academicsync
+      POSTGRES_PASSWORD: academicsync
+    ports:
+      - "5435:5432"
+    volumes:
+      - academicsync_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  academicsync_postgres_data:

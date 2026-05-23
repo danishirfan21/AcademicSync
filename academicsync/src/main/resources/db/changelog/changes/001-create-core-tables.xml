@@ -1,0 +1,133 @@
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+          http://www.liquibase.org/xml/ns/dbchangelog
+          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="001-create-students" author="danish">
+        <createTable tableName="students">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="external_student_id" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="full_name" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="program" type="VARCHAR(100)"/>
+            <column name="academic_status" type="VARCHAR(50)"/>
+            <column name="admission_term" type="VARCHAR(50)"/>
+            <column name="last_synced_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="002-create-courses" author="danish">
+        <createTable tableName="courses">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="course_code" type="VARCHAR(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="title" type="VARCHAR(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="department" type="VARCHAR(100)"/>
+            <column name="credit_hours" type="INT"/>
+            <column name="active" type="BOOLEAN" defaultValueBoolean="true"/>
+            <column name="last_synced_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="003-create-enrollments" author="danish">
+        <createTable tableName="enrollments">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="external_enrollment_id" type="VARCHAR(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="student_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="course_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="semester" type="VARCHAR(50)"/>
+            <column name="status" type="VARCHAR(50)"/>
+            <column name="last_synced_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="enrollments"
+                baseColumnNames="student_id"
+                referencedTableName="students"
+                referencedColumnNames="id"
+                constraintName="fk_enrollments_students"/>
+
+        <addForeignKeyConstraint
+                baseTableName="enrollments"
+                baseColumnNames="course_id"
+                referencedTableName="courses"
+                referencedColumnNames="id"
+                constraintName="fk_enrollments_courses"/>
+    </changeSet>
+
+    <changeSet id="004-create-sync-runs" author="danish">
+        <createTable tableName="sync_runs">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="sync_type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="started_at" type="TIMESTAMP"/>
+            <column name="completed_at" type="TIMESTAMP"/>
+            <column name="records_processed" type="INT" defaultValueNumeric="0"/>
+            <column name="records_created" type="INT" defaultValueNumeric="0"/>
+            <column name="records_updated" type="INT" defaultValueNumeric="0"/>
+            <column name="records_failed" type="INT" defaultValueNumeric="0"/>
+            <column name="error_message" type="TEXT"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="005-create-sync-errors" author="danish">
+        <createTable tableName="sync_errors">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="sync_run_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source_record_id" type="VARCHAR(100)"/>
+            <column name="entity_type" type="VARCHAR(50)"/>
+            <column name="error_reason" type="TEXT"/>
+            <column name="raw_payload" type="TEXT"/>
+            <column name="retry_count" type="INT" defaultValueNumeric="0"/>
+            <column name="resolved" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+                baseTableName="sync_errors"
+                baseColumnNames="sync_run_id"
+                referencedTableName="sync_runs"
+                referencedColumnNames="id"
+                constraintName="fk_sync_errors_sync_runs"/>
+    </changeSet>
+
+</databaseChangeLog>

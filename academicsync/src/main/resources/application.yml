@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: academicsync
+
+  datasource:
+    url: jdbc:postgresql://localhost:5435/academicsync
+    username: academicsync
+    password: academicsync
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+
+server:
+  port: 8080
