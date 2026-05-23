@@ -9,11 +9,17 @@ import com.danish.academicsync.student.Student;
 import com.danish.academicsync.student.StudentRepository;
 import com.danish.academicsync.sync.dto.SyncResultResponse;
 import lombok.RequiredArgsConstructor;
+import main.java.com.danish.academicsync.enrollment.EnrollmentRepository;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+
+import com.danish.academicsync.enrollment.Enrollment;
+import com.danish.academicsync.enrollment.EnrollmentRepository;
+import com.danish.academicsync.mock.dto.MockEnrollmentDto;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +29,7 @@ public class SyncService {
     private final StudentRepository studentRepository;
     private final CourseRepository courseRepository;
     private final SyncRunRepository syncRunRepository;
+    private final EnrollmentRepository enrollmentRepository;
 
     @Transactional
     public SyncResultResponse syncStudents() {
@@ -191,5 +198,71 @@ public class SyncService {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    @Transactional
+    public SyncResultResponse syncEnrollments() {
+        SyncRun run = startRun(SyncType.ENROLLMENTS);
+
+        int processed = 0;
+        int created = 0;
+        int updated = 0;
+        int failed = 0;
+
+        try {
+            List<MockEnrollmentDto> enrollments = sisClient.fetchEnrollments();
+
+            for (MockEnrollmentDto dto : enrollments) {
+                processed++;
+
+                if (
+                        isBlank(dto.externalEnrollmentId()) ||
+                        isBlank(dto.externalStudentId()) ||
+                        isBlank(dto.courseCode())
+                ) {
+                    failed++;
+                    continue;
+                }
+
+                var studentOptional = studentRepository.findByExternalStudentId(dto.externalStudentId());
+                var courseOptional = courseRepository.findByCourseCode(dto.courseCode());
+
+                if (studentOptional.isEmpty() || courseOptional.isEmpty()) {
+                    failed++;
+                    continue;
+                }
+
+                Enrollment enrollment = enrollmentRepository
+                        .findByExternalEnrollmentId(dto.externalEnrollmentId())
+                        .orElseGet(() -> {
+                            Enrollment e = new Enrollment();
+                            e.setExternalEnrollmentId(dto.externalEnrollmentId());
+                            return e;
+                        });
+
+                boolean isNew = enrollment.getId() == null;
+
+                enrollment.setStudent(studentOptional.get());
+                enrollment.setCourse(courseOptional.get());
+                enrollment.setSemester(dto.semester());
+                enrollment.setStatus(dto.status());
+                enrollment.setLastSyncedAt(Instant.now());
+
+                enrollmentRepository.save(enrollment);
+
+                if (isNew) {
+                    created++;
+                } else {
+                    updated++;
+                }
+            }
+
+            completeRun(run, processed, created, updated, failed);
+
+        } catch (Exception ex) {
+            failRun(run, processed, created, updated, failed, ex.getMessage());
+        }
+
+        return toResponse(run);
     }
 }

@@ -20,4 +20,9 @@ public class SyncController {
     public SyncResultResponse syncCourses() {
         return syncService.syncCourses();
     }
+
+    @PostMapping("/enrollments")
+    public SyncResultResponse syncEnrollments() {
+        return syncService.syncEnrollments();
+    }
 }

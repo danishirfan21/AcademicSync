@@ -5,6 +5,7 @@ import com.danish.academicsync.mock.dto.MockStudentDto;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import com.danish.academicsync.mock.dto.MockEnrollmentDto;
 
 import java.util.List;
 
@@ -29,6 +30,13 @@ public class SisClient {
     public List<MockCourseDto> fetchCourses() {
         return restClient.get()
                 .uri("/mock-sis/courses")
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
+    }
+
+    public List<MockEnrollmentDto> fetchEnrollments() {
+        return restClient.get()
+                .uri("/mock-sis/enrollments")
                 .retrieve()
                 .body(new ParameterizedTypeReference<>() {});
     }
