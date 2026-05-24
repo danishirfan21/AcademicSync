@@ -1,43 +1,29 @@
 package com.danish.academicsync.integration;
 
 import com.danish.academicsync.mock.dto.MockCourseDto;
+import com.danish.academicsync.mock.MockSisDataService;
 import com.danish.academicsync.mock.dto.MockStudentDto;
-import org.springframework.core.ParameterizedTypeReference;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 import com.danish.academicsync.mock.dto.MockEnrollmentDto;
 
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class SisClient {
 
-    private final RestClient restClient;
-
-    public SisClient(RestClient.Builder builder) {
-        this.restClient = builder
-                .baseUrl("http://localhost:8080")
-                .build();
-    }
+    private final MockSisDataService mockSisDataService;
 
     public List<MockStudentDto> fetchStudents() {
-        return restClient.get()
-                .uri("/mock-sis/students")
-                .retrieve()
-                .body(new ParameterizedTypeReference<>() {});
+        return mockSisDataService.students();
     }
 
     public List<MockCourseDto> fetchCourses() {
-        return restClient.get()
-                .uri("/mock-sis/courses")
-                .retrieve()
-                .body(new ParameterizedTypeReference<>() {});
+        return mockSisDataService.courses();
     }
 
     public List<MockEnrollmentDto> fetchEnrollments() {
-        return restClient.get()
-                .uri("/mock-sis/enrollments")
-                .retrieve()
-                .body(new ParameterizedTypeReference<>() {});
+        return mockSisDataService.enrollments();
     }
 }

@@ -3,9 +3,9 @@ spring:
     name: academicsync
 
   datasource:
-    url: jdbc:postgresql://localhost:5435/academicsync
-    username: academicsync
-    password: academicsync
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5435/academicsync}
+    username: ${SPRING_DATASOURCE_USERNAME:academicsync}
+    password: ${SPRING_DATASOURCE_PASSWORD:academicsync}
 
   jpa:
     hibernate:
@@ -19,21 +19,22 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
 
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: academicsync
-    password: academicsync
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:academicsync}
+    password: ${SPRING_RABBITMQ_PASSWORD:academicsync}
 
 server:
   port: 8080
 
 academicsync:
   messaging:
-      exchange: academicsync.events
-      sync-routing-key: academicsync.sync.completed
-      failure-routing-key: academicsync.sync.failed
+    enabled: ${ACADEMICSYNC_MESSAGING_ENABLED:false}
+    exchange: academicsync.events
+    sync-routing-key: academicsync.sync.completed
+    failure-routing-key: academicsync.sync.failed
   scheduler:
-    enabled: true
+    enabled: ${ACADEMICSYNC_SCHEDULER_ENABLED:true}
     cron: "0 */15 * * * *"
 
 management:

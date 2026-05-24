@@ -2,10 +2,12 @@ package com.danish.academicsync.messaging;
 
 import org.springframework.amqp.core.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@ConditionalOnProperty(name = "academicsync.messaging.enabled", havingValue = "true")
 public class RabbitMqConfig {
 
     @Value("${academicsync.messaging.exchange}")

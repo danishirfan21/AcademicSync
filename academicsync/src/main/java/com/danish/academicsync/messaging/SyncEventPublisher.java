@@ -14,6 +14,9 @@ public class SyncEventPublisher {
 
     private final RabbitTemplate rabbitTemplate;
 
+    @Value("${academicsync.messaging.enabled:false}")
+    private boolean messagingEnabled;
+
     @Value("${academicsync.messaging.exchange}")
     private String exchange;
 
@@ -24,6 +27,10 @@ public class SyncEventPublisher {
     private String failureRoutingKey;
 
     public void publishSyncCompleted(SyncResultResponse result) {
+        if (!messagingEnabled) {
+            return;
+        }
+
         SyncCompletedEvent event = new SyncCompletedEvent(
                 result.syncRunId(),
                 result.syncType().name(),

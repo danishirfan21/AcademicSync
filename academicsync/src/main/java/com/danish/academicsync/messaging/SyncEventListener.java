@@ -2,9 +2,11 @@ package com.danish.academicsync.messaging;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "academicsync.messaging.enabled", havingValue = "true")
 @Slf4j
 public class SyncEventListener {
 

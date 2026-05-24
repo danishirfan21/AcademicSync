@@ -79,23 +79,56 @@ GET /api/reports/stale-records?olderThanHours=24
 
 ## Running Locally
 
-Start PostgreSQL:
+The Spring Boot project lives in `academicsync/`.
 
+```powershell
+cd academicsync
+```
+
+Start PostgreSQL with Docker Compose:
+
+```bash
 docker compose up -d postgres
+```
 
-Run Spring Boot:
+Run Spring Boot with local Maven:
 
-./mvnw spring-boot:run
+```bash
+mvn spring-boot:run
+```
+
+RabbitMQ is optional for local development. Messaging is disabled by default, so the sync APIs can run with just PostgreSQL. To enable RabbitMQ locally, start it and set:
+
+```bash
+ACADEMICSYNC_MESSAGING_ENABLED=true
+```
+
+### Running with Supabase Postgres
+
+Create a Supabase Postgres database and set these environment variables before starting the app:
+
+```bash
+SPRING_DATASOURCE_URL=jdbc:postgresql://<host>:5432/postgres?sslmode=require
+SPRING_DATASOURCE_USERNAME=<user>
+SPRING_DATASOURCE_PASSWORD=<password>
+ACADEMICSYNC_MESSAGING_ENABLED=false
+```
+
+Liquibase will create the required tables when the app starts.
 
 ## Running with Docker Compose
 
 Build the application:
 
-./mvnw clean package -DskipTests
+```bash
+mvn clean package -DskipTests
+```
 
 Start services:
 
+```bash
 docker compose up --build
+```
 
 The API will be available at:
 
