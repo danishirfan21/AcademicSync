@@ -8,4 +8,6 @@ public interface SyncErrorRepository extends JpaRepository<SyncError, Long> {
     List<SyncError> findByResolvedFalseOrderByCreatedAtDesc();
 
     List<SyncError> findByResolvedFalseAndEntityTypeOrderByCreatedAtDesc(String entityType);
+
+    long countByResolvedFalse();
 }

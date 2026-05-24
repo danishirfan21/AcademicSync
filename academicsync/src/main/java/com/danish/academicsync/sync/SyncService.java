@@ -9,14 +9,13 @@ import com.danish.academicsync.student.Student;
 import com.danish.academicsync.student.StudentRepository;
 import com.danish.academicsync.sync.dto.SyncResultResponse;
 
-import academicsync.src.main.java.com.danish.academicsync.messaging.SyncEventPublisher;
-import academicsync.src.main.java.com.danish.academicsync.observability.SyncMetricsService;
-import academicsync.src.main.java.com.danish.academicsync.report.dto.SyncRunRepository;
+import com.danish.academicsync.messaging.SyncEventPublisher;
+import com.danish.academicsync.observability.SyncMetricsService;
 import lombok.RequiredArgsConstructor;
-import main.java.com.danish.academicsync.enrollment.EnrollmentRepository;
-import main.java.com.danish.academicsync.sync.dto.RetryResultResponse;
-import main.java.com.danish.academicsync.sync.dto.SyncErrorResponse;
-import main.java.com.danish.academicsync.sync.dto.SyncRunResponse;
+import com.danish.academicsync.enrollment.EnrollmentRepository;
+import com.danish.academicsync.sync.dto.RetryResultResponse;
+import com.danish.academicsync.sync.dto.SyncErrorResponse;
+import com.danish.academicsync.sync.dto.SyncRunResponse;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,12 +24,7 @@ import java.time.Instant;
 import java.util.List;
 
 import com.danish.academicsync.enrollment.Enrollment;
-import com.danish.academicsync.enrollment.EnrollmentRepository;
 import com.danish.academicsync.mock.dto.MockEnrollmentDto;
-
-import com.danish.academicsync.mock.dto.MockEnrollmentDto;
-import com.danish.academicsync.observability.SyncMetricsService;
-import com.danish.academicsync.messaging.SyncEventPublisher;
 
 @Service
 @RequiredArgsConstructor
@@ -475,11 +469,11 @@ public class SyncService {
 
         Enrollment enrollment = enrollmentRepository
                 .findByExternalEnrollmentId(dto.externalEnrollmentId())
-                .orElseGet(() -> {
-                    Enrollment e = new Enrollment();
-                    e.setExternalEnrollmentId(dto.externalEnrollmentId());
-                    return e;
-                });
+                        .orElseGet(() -> {
+                            Enrollment e = new Enrollment();
+                            e.setExternalEnrollmentId(dto.externalEnrollmentId());
+                            return e;
+                        });
 
         enrollment.setStudent(studentOptional.get());
         enrollment.setCourse(courseOptional.get());
