@@ -148,6 +148,46 @@ This project demonstrates skills directly relevant to enterprise software engine
 - reporting and operational insights
 - maintainable Spring Boot architecture
 
+## Demo Flow
+
+### 1. Check API health
+
+GET /api/health
+
+### 2. Inspect mock SIS source data
+
+GET /mock-sis/students  
+GET /mock-sis/courses  
+GET /mock-sis/enrollments
+
+### 3. Run manual sync
+
+POST /api/sync/students  
+POST /api/sync/courses  
+POST /api/sync/enrollments
+
+### 4. Review sync history
+
+GET /api/sync/runs
+
+### 5. Review unresolved sync errors
+
+GET /api/sync/errors
+
+### 6. Retry failed records
+
+POST /api/sync/retry-errors
+
+### 7. View operational reports
+
+GET /api/reports/students-by-program  
+GET /api/reports/enrollments-by-course  
+GET /api/reports/sync-health  
+GET /api/reports/stale-records?olderThanHours=24
+
+
+
+
 
 
 
