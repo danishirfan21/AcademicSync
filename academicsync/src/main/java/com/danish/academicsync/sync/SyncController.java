@@ -2,11 +2,8 @@ package com.danish.academicsync.sync;
 
 import com.danish.academicsync.sync.dto.SyncResultResponse;
 import lombok.RequiredArgsConstructor;
-import main.java.com.danish.academicsync.sync.dto.SyncErrorResponse;
-import main.java.com.danish.academicsync.sync.dto.SyncRunResponse;
-
-import com.danish.academicsync.sync.dto.SyncRunResponse;
 import com.danish.academicsync.sync.dto.SyncErrorResponse;
+import com.danish.academicsync.sync.dto.SyncRunResponse;
 
 import java.util.List;
 

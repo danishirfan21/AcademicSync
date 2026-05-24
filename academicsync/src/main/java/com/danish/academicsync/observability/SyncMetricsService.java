@@ -1,6 +1,6 @@
 package com.danish.academicsync.observability;
 
-import com.danish.academicsync.sync.SyncResultResponse;
+import com.danish.academicsync.sync.dto.SyncResultResponse;
 import com.danish.academicsync.sync.SyncStatus;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
