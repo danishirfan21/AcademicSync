@@ -18,10 +18,20 @@ spring:
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: academicsync
+    password: academicsync
+
 server:
   port: 8080
 
 academicsync:
+  messaging:
+      exchange: academicsync.events
+      sync-routing-key: academicsync.sync.completed
+      failure-routing-key: academicsync.sync.failed
   scheduler:
     enabled: true
     cron: "0 */15 * * * *"

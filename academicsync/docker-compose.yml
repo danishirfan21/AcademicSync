@@ -22,12 +22,28 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      rabbitmq:
+        condition: service_started
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/academicsync
       SPRING_DATASOURCE_USERNAME: academicsync
       SPRING_DATASOURCE_PASSWORD: academicsync
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: academicsync
+      SPRING_RABBITMQ_PASSWORD: academicsync
     ports:
       - "8080:8080"
 
 volumes:
   academicsync_postgres_data:
+
+rabbitmq:
+  image: rabbitmq:3-management
+  container_name: academicsync-rabbitmq
+  ports:
+    - "5672:5672"
+    - "15672:15672"
+  environment:
+    RABBITMQ_DEFAULT_USER: academicsync
+    RABBITMQ_DEFAULT_PASS: academicsync

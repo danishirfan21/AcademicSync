@@ -9,6 +9,7 @@ import com.danish.academicsync.student.Student;
 import com.danish.academicsync.student.StudentRepository;
 import com.danish.academicsync.sync.dto.SyncResultResponse;
 
+import academicsync.src.main.java.com.danish.academicsync.messaging.SyncEventPublisher;
 import academicsync.src.main.java.com.danish.academicsync.observability.SyncMetricsService;
 import academicsync.src.main.java.com.danish.academicsync.report.dto.SyncRunRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import com.danish.academicsync.mock.dto.MockEnrollmentDto;
 
 import com.danish.academicsync.mock.dto.MockEnrollmentDto;
 import com.danish.academicsync.observability.SyncMetricsService;
+import com.danish.academicsync.messaging.SyncEventPublisher;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +43,7 @@ public class SyncService {
     private final EnrollmentRepository enrollmentRepository;
     private final SyncErrorRepository syncErrorRepository;
     private final SyncMetricsService syncMetricsService;
+    private final SyncEventPublisher syncEventPublisher;
 
     @Transactional
     public SyncResultResponse syncStudents() {
@@ -103,6 +106,7 @@ public class SyncService {
 
         SyncResultResponse response = toResponse(run);
         syncMetricsService.recordSyncResult(response);
+        syncEventPublisher.publishSyncCompleted(response);
         return response;
     }
 
@@ -166,6 +170,7 @@ public class SyncService {
 
         SyncResultResponse response = toResponse(run);
         syncMetricsService.recordSyncResult(response);
+        syncEventPublisher.publishSyncCompleted(response);
         return response;
     }
 
@@ -308,6 +313,7 @@ public class SyncService {
 
         SyncResultResponse response = toResponse(run);
         syncMetricsService.recordSyncResult(response);
+        syncEventPublisher.publishSyncCompleted(response);
         return response;
     }
 
