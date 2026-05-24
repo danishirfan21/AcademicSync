@@ -10,6 +10,8 @@ import com.danish.academicsync.student.StudentRepository;
 import com.danish.academicsync.sync.dto.SyncResultResponse;
 import lombok.RequiredArgsConstructor;
 import main.java.com.danish.academicsync.enrollment.EnrollmentRepository;
+import main.java.com.danish.academicsync.sync.dto.SyncErrorResponse;
+import main.java.com.danish.academicsync.sync.dto.SyncRunResponse;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +32,7 @@ public class SyncService {
     private final CourseRepository courseRepository;
     private final SyncRunRepository syncRunRepository;
     private final EnrollmentRepository enrollmentRepository;
+    private final SyncErrorRepository syncErrorRepository;
 
     @Transactional
     public SyncResultResponse syncStudents() {
@@ -48,6 +51,13 @@ public class SyncService {
 
                 if (isBlank(dto.externalStudentId()) || isBlank(dto.fullName()) || isBlank(dto.email())) {
                     failed++;
+                    logSyncError(
+                            run,
+                            dto.externalStudentId(),
+                            "STUDENT",
+                            "Missing required student fields",
+                            dto.toString()
+                    );
                     continue;
                 }
 
@@ -103,6 +113,13 @@ public class SyncService {
 
                 if (isBlank(dto.courseCode()) || isBlank(dto.title())) {
                     failed++;
+                    logSyncError(
+                            run,
+                            dto.courseCode(),
+                            "COURSE",
+                            "Missing required course fields",
+                            dto.toString()
+                    );
                     continue;
                 }
 
@@ -216,11 +233,18 @@ public class SyncService {
                 processed++;
 
                 if (
-                        isBlank(dto.externalEnrollmentId()) ||
-                        isBlank(dto.externalStudentId()) ||
-                        isBlank(dto.courseCode())
+                    isBlank(dto.externalEnrollmentId()) ||
+                    isBlank(dto.externalStudentId()) ||
+                    isBlank(dto.courseCode())
                 ) {
                     failed++;
+                    logSyncError(
+                            run,
+                            dto.externalEnrollmentId(),
+                            "ENROLLMENT",
+                            "Missing required enrollment fields",
+                            dto.toString()
+                    );
                     continue;
                 }
 
@@ -229,6 +253,13 @@ public class SyncService {
 
                 if (studentOptional.isEmpty() || courseOptional.isEmpty()) {
                     failed++;
+                    logSyncError(
+                            run,
+                            dto.externalEnrollmentId(),
+                            "ENROLLMENT",
+                            "Missing referenced student or course",
+                            dto.toString()
+                    );
                     continue;
                 }
 
@@ -264,5 +295,77 @@ public class SyncService {
         }
 
         return toResponse(run);
+    }
+
+    private void logSyncError(
+        SyncRun run,
+        String sourceRecordId,
+        String entityType,
+        String reason,
+        String rawPayload
+    ) {
+        SyncError error = new SyncError();
+        error.setSyncRun(run);
+        error.setSourceRecordId(sourceRecordId);
+        error.setEntityType(entityType);
+        error.setErrorReason(reason);
+        error.setRawPayload(rawPayload);
+        error.setRetryCount(0);
+        error.setResolved(false);
+
+        syncErrorRepository.save(error);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SyncRunResponse> getSyncRuns() {
+        return syncRunRepository.findAll()
+                .stream()
+                .map(this::toRunResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public SyncRunResponse getSyncRun(Long id) {
+        SyncRun run = syncRunRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Sync run not found: " + id));
+
+        return toRunResponse(run);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SyncErrorResponse> getOpenSyncErrors() {
+        return syncErrorRepository.findByResolvedFalseOrderByCreatedAtDesc()
+                .stream()
+                .map(this::toErrorResponse)
+                .toList();
+    }
+
+    private SyncRunResponse toRunResponse(SyncRun run) {
+        return new SyncRunResponse(
+                run.getId(),
+                run.getSyncType(),
+                run.getStatus(),
+                run.getStartedAt(),
+                run.getCompletedAt(),
+                run.getRecordsProcessed(),
+                run.getRecordsCreated(),
+                run.getRecordsUpdated(),
+                run.getRecordsFailed(),
+                run.getErrorMessage()
+        );
+    }
+
+    private SyncErrorResponse toErrorResponse(SyncError error) {
+        return new SyncErrorResponse(
+                error.getId(),
+                error.getSyncRun().getId(),
+                error.getSourceRecordId(),
+                error.getEntityType(),
+                error.getErrorReason(),
+                error.getRawPayload(),
+                error.getRetryCount(),
+                error.isResolved(),
+                error.getCreatedAt()
+        );
     }
 }
