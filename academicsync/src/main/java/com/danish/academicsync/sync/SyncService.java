@@ -8,6 +8,9 @@ import com.danish.academicsync.mock.dto.MockStudentDto;
 import com.danish.academicsync.student.Student;
 import com.danish.academicsync.student.StudentRepository;
 import com.danish.academicsync.sync.dto.SyncResultResponse;
+
+import academicsync.src.main.java.com.danish.academicsync.observability.SyncMetricsService;
+import academicsync.src.main.java.com.danish.academicsync.report.dto.SyncRunRepository;
 import lombok.RequiredArgsConstructor;
 import main.java.com.danish.academicsync.enrollment.EnrollmentRepository;
 import main.java.com.danish.academicsync.sync.dto.RetryResultResponse;
@@ -25,6 +28,7 @@ import com.danish.academicsync.enrollment.EnrollmentRepository;
 import com.danish.academicsync.mock.dto.MockEnrollmentDto;
 
 import com.danish.academicsync.mock.dto.MockEnrollmentDto;
+import com.danish.academicsync.observability.SyncMetricsService;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +40,7 @@ public class SyncService {
     private final SyncRunRepository syncRunRepository;
     private final EnrollmentRepository enrollmentRepository;
     private final SyncErrorRepository syncErrorRepository;
+    private final SyncMetricsService syncMetricsService;
 
     @Transactional
     public SyncResultResponse syncStudents() {
@@ -96,7 +101,9 @@ public class SyncService {
             failRun(run, processed, created, updated, failed, ex.getMessage());
         }
 
-        return toResponse(run);
+        SyncResultResponse response = toResponse(run);
+        syncMetricsService.recordSyncResult(response);
+        return response;
     }
 
     @Transactional
@@ -157,7 +164,9 @@ public class SyncService {
             failRun(run, processed, created, updated, failed, ex.getMessage());
         }
 
-        return toResponse(run);
+        SyncResultResponse response = toResponse(run);
+        syncMetricsService.recordSyncResult(response);
+        return response;
     }
 
     private SyncRun startRun(SyncType type) {
@@ -297,7 +306,9 @@ public class SyncService {
             failRun(run, processed, created, updated, failed, ex.getMessage());
         }
 
-        return toResponse(run);
+        SyncResultResponse response = toResponse(run);
+        syncMetricsService.recordSyncResult(response);
+        return response;
     }
 
     private void logSyncError(
