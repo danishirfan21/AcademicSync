@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface SyncErrorRepository extends JpaRepository<SyncError, Long> {
     List<SyncError> findByResolvedFalseOrderByCreatedAtDesc();
+
+    List<SyncError> findByResolvedFalseAndEntityTypeOrderByCreatedAtDesc(String entityType);
 }

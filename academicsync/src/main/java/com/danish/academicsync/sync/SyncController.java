@@ -12,6 +12,8 @@ import java.util.List;
 
 import org.springframework.web.bind.annotation.*;
 
+import com.danish.academicsync.sync.dto.RetryResultResponse;
+
 @RestController
 @RequestMapping("/api/sync")
 @RequiredArgsConstructor
@@ -47,5 +49,15 @@ public class SyncController {
     @GetMapping("/errors")
     public List<SyncErrorResponse> getOpenSyncErrors() {
         return syncService.getOpenSyncErrors();
+    }
+
+    @PostMapping("/retry-errors")
+    public RetryResultResponse retryOpenErrors() {
+        return syncService.retryOpenErrors();
+    }
+
+    @PostMapping("/errors/{id}/retry")
+    public RetryResultResponse retryError(@PathVariable Long id) {
+        return syncService.retryError(id);
     }
 }

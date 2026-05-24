@@ -10,6 +10,7 @@ import com.danish.academicsync.student.StudentRepository;
 import com.danish.academicsync.sync.dto.SyncResultResponse;
 import lombok.RequiredArgsConstructor;
 import main.java.com.danish.academicsync.enrollment.EnrollmentRepository;
+import main.java.com.danish.academicsync.sync.dto.RetryResultResponse;
 import main.java.com.danish.academicsync.sync.dto.SyncErrorResponse;
 import main.java.com.danish.academicsync.sync.dto.SyncRunResponse;
 
@@ -21,6 +22,8 @@ import java.util.List;
 
 import com.danish.academicsync.enrollment.Enrollment;
 import com.danish.academicsync.enrollment.EnrollmentRepository;
+import com.danish.academicsync.mock.dto.MockEnrollmentDto;
+
 import com.danish.academicsync.mock.dto.MockEnrollmentDto;
 
 @Service
@@ -367,5 +370,108 @@ public class SyncService {
                 error.isResolved(),
                 error.getCreatedAt()
         );
+    }
+
+    @Transactional
+    public RetryResultResponse retryOpenErrors() {
+        var errors = syncErrorRepository.findByResolvedFalseOrderByCreatedAtDesc();
+
+        int attempted = 0;
+        int resolved = 0;
+        int stillFailed = 0;
+
+        for (SyncError error : errors) {
+            attempted++;
+
+            boolean success = retrySingleError(error);
+
+            if (success) {
+                error.setResolved(true);
+                resolved++;
+            } else {
+                error.setRetryCount(error.getRetryCount() + 1);
+                stillFailed++;
+            }
+
+            syncErrorRepository.save(error);
+        }
+
+        return new RetryResultResponse(attempted, resolved, stillFailed);
+    }
+
+    @Transactional
+    public RetryResultResponse retryError(Long id) {
+        SyncError error = syncErrorRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Sync error not found: " + id));
+
+        if (error.isResolved()) {
+            return new RetryResultResponse(0, 0, 0);
+        }
+
+        boolean success = retrySingleError(error);
+
+        if (success) {
+            error.setResolved(true);
+            syncErrorRepository.save(error);
+            return new RetryResultResponse(1, 1, 0);
+        }
+
+        error.setRetryCount(error.getRetryCount() + 1);
+        syncErrorRepository.save(error);
+
+        return new RetryResultResponse(1, 0, 1);
+    }
+
+    private boolean retrySingleError(SyncError error) {
+        try {
+            if ("ENROLLMENT".equals(error.getEntityType())) {
+                return retryEnrollmentError(error);
+            }
+
+            // Student/course validation errors cannot be safely reconstructed yet
+            // because rawPayload is only stored as dto.toString().
+            return false;
+
+        } catch (Exception ex) {
+            return false;
+        }
+    }
+
+    private boolean retryEnrollmentError(SyncError error) {
+        List<MockEnrollmentDto> enrollments = sisClient.fetchEnrollments();
+
+        MockEnrollmentDto dto = enrollments.stream()
+                .filter(item -> item.externalEnrollmentId().equals(error.getSourceRecordId()))
+                .findFirst()
+                .orElse(null);
+
+        if (dto == null) {
+            return false;
+        }
+
+        var studentOptional = studentRepository.findByExternalStudentId(dto.externalStudentId());
+        var courseOptional = courseRepository.findByCourseCode(dto.courseCode());
+
+        if (studentOptional.isEmpty() || courseOptional.isEmpty()) {
+            return false;
+        }
+
+        Enrollment enrollment = enrollmentRepository
+                .findByExternalEnrollmentId(dto.externalEnrollmentId())
+                .orElseGet(() -> {
+                    Enrollment e = new Enrollment();
+                    e.setExternalEnrollmentId(dto.externalEnrollmentId());
+                    return e;
+                });
+
+        enrollment.setStudent(studentOptional.get());
+        enrollment.setCourse(courseOptional.get());
+        enrollment.setSemester(dto.semester());
+        enrollment.setStatus(dto.status());
+        enrollment.setLastSyncedAt(Instant.now());
+
+        enrollmentRepository.save(enrollment);
+
+        return true;
     }
 }
