@@ -185,6 +185,9 @@ GET /api/reports/enrollments-by-course
 GET /api/reports/sync-health  
 GET /api/reports/stale-records?olderThanHours=24
 
+## CSV Import
+
+AcademicSync supports CSV-based student imports for operational workflows where registrar or academic teams receive bulk data files.
 
 
 

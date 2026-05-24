@@ -1,0 +1,4 @@
+externalStudentId,fullName,email,program,academicStatus,admissionTerm
+STU-3001,Hira Noor,hira.noor@university.edu,BS Computer Science,ACTIVE,Fall 2024
+,Missing Id,missing.id@university.edu,BBA,ACTIVE,Fall 2023
+STU-3003,Missing Email,,BS Economics,ACTIVE,Fall 2022
